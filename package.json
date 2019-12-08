@@ -1,0 +1,21 @@
+{
+  "name": "vue-builder",
+  "version": "1.0.0",
+  "description": "Easy Vue builder for production",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "VueJS",
+    "GIT",
+    "Builder"
+  ],
+  "author": "Miroslav Krnáč",
+  "license": "MIT",
+  "dependencies": {
+    "npm-run": "^5.0.1",
+    "prepend-file": "^1.3.1",
+    "simple-git": "^1.128.0"
+  }
+}
