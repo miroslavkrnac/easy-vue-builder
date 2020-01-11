@@ -9,13 +9,8 @@ const versionPath = "lib/easy_vue/version.rb";
 const prompts = require("prompts");
 
 const finishAndExit = (branchName, commitName) => {
-  console.log(
-    `\n
-     Successfully updated bundle.js \n
-     Pushed to branch: ${branchName} \n
-     Created commit: ${commitName} \n
-     and pushed to branch
-    `
+  console.table(
+    `\nSuccessfully updated bundle.js\nPushed to branch: ${branchName} \nCreated commit: ${commitName}\nand pushed to branch`
   );
   process.exit(0);
 };
