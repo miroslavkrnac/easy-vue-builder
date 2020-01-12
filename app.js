@@ -8,9 +8,10 @@ let bundlePath = "app/assets/javascripts/easy_vue/bundle.js";
 const versionPath = "lib/easy_vue/version.rb";
 const prompts = require("prompts");
 
-const finishAndExit = (branchName, commitName) => {
-  console.table(
-    `\nSuccessfully updated bundle.js\nPushed to branch: ${branchName} \nCreated commit: ${commitName}\nand pushed to branch`
+const finishAndExit = (branchName, commitName, versionType) => {
+  const updatedVersion = versionType ? "Successfully updated version" : "";
+  console.log(
+    `\n${updatedVersion}\nSuccessfully updated bundle.js\nPushed to branch: ${branchName} \nCreated commit: ${commitName}\nand pushed to branch`
   );
   process.exit(0);
 };
@@ -19,10 +20,11 @@ const getCurrentVersion = () => {
   const isVersion = fs.existsSync(versionPath);
   if (!isVersion) return null;
   const version = fs.readFileSync(versionPath, "utf8");
-  const versionParsedArr = version.match(/\d+/g, version);
-  const [major, minor, patch] = versionParsedArr;
+  const versionParsedArr = version.match(/(\d+).(\d+).(\d+)/);
+
+  const [versionString, major, minor, patch] = versionParsedArr;
   return {
-    versionString: `${major}.${minor}.${patch}`,
+    versionString,
     major,
     minor,
     patch
@@ -37,15 +39,21 @@ const resetAndCommit = async ({ value: confirmed, aborted }) => {
   git().reset("hard");
 };
 
-const getBranchChoices = async (options, prev) => {
+const getIncreasedVersion = (computedVersions, versionType) => {
+  const attrName = `increased${versionType
+    .charAt(0)
+    .toUpperCase()}${versionType.slice(1)}`;
+  return computedVersions[attrName];
+};
+
+const getBranchChoices = async (options, versionType) => {
   const { currentBranch, computedVersions } = options;
   const choices = [
     { title: `${currentBranch}`, value: `${currentBranch}` },
     { title: `Own name`, value: "own" }
   ];
-  if (prev) {
-    const attrName = `increased${prev.charAt(0).toUpperCase()}${prev.slice(1)}`;
-    let increasedVersion = computedVersions[attrName];
+  if (versionType) {
+    const increasedVersion = getIncreasedVersion(computedVersions, versionType);
     choices.unshift({
       title: `release_${increasedVersion}`,
       value: `release_${increasedVersion}`
@@ -54,8 +62,8 @@ const getBranchChoices = async (options, prev) => {
   return choices;
 };
 
-const processResponses = async answers => {
-  const { bundlePath, commitMessage, branchName } = answers;
+const processResponses = async (answers, computedVersions) => {
+  const { bundlePath, commitMessage, branchName, versionType } = answers;
   const { current: currentBranch } = await git().branch();
 
   // if users branch !== current branch, checkout to new specified branch
@@ -72,13 +80,23 @@ const processResponses = async answers => {
   }
   // append text to bundle.js
   prependFile.sync(bundlePath, bundleTextToAppend);
+
+  // modify version.rb if version change is chosen
+  if (versionType) {
+    const versionFile = fs.readFileSync(versionPath, "utf8");
+    const versionRegxp = /(\d+).(\d+).(\d+)/;
+    const increasedVersion = getIncreasedVersion(computedVersions, versionType);
+    const newVersionFile = versionFile.replace(versionRegxp, increasedVersion);
+    fs.writeFileSync(versionPath, newVersionFile, "utf8");
+  }
+
   // add all changes to git
   await git().add("*");
   // ask for commit message
   console.log("committed with message", commitMessage);
   await git().commit(commitMessage);
   await git().push("origin", branchName);
-  finishAndExit(branchName, commitMessage);
+  finishAndExit(branchName, commitMessage, versionType);
 };
 
 const computeVersions = currVersion => {
@@ -112,9 +130,9 @@ const init = async () => {
       name: "versionType",
       message: `Pick a version you want to increase. Current version is: ${currVersion.versionString}`,
       choices: [
-        { title: `Major ${increasedMajor}`, value: "major" },
-        { title: `Minor ${increasedMinor}`, value: "minor" },
-        { title: `Patch ${increasedPatch}`, value: "patch" },
+        { title: `Major (version will be: ${increasedMajor})`, value: "major" },
+        { title: `Minor (version will be: ${increasedMinor})`, value: "minor" },
+        { title: `Patch (version will be: ${increasedPatch})`, value: "patch" },
         { title: `None of them`, value: null }
       ]
     },
@@ -146,7 +164,7 @@ const init = async () => {
     }
   ]);
 
-  await processResponses(answers);
+  await processResponses(answers, computedVersions);
 };
 
 init();
