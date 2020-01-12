@@ -1,5 +1,6 @@
 # Easy Vue builder
 This script is used for building easy_vue `build.js` in proper format.
+And it can also increase version in `version.rb` file.
 ## Install
 1) Clone repository to your device
 2) Install oh-my-zsh
