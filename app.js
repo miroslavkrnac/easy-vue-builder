@@ -2,11 +2,12 @@ const fs = require("fs");
 const prependFile = require("prepend-file");
 const npmRun = require("npm-run");
 const git = require("simple-git/promise");
-const bundleTextToAppend = "/*! no_asset_compression */\n";
 const exec = require("child_process");
+const prompts = require("prompts");
+
 let bundlePath = "app/assets/javascripts/easy_vue/bundle.js";
 const versionPath = "lib/easy_vue/version.rb";
-const prompts = require("prompts");
+const bundleTextToAppend = "/*! no_asset_compression */\n";
 
 const getCurrentVersion = () => {
   const isVersion = fs.existsSync(versionPath);
@@ -81,7 +82,7 @@ const processResponses = async (answers, computedVersions) => {
     const increasedVersion = getIncreasedVersion(computedVersions, versionType);
     const newVersionFile = versionFile.replace(versionRegxp, increasedVersion);
     fs.writeFileSync(versionPath, newVersionFile, "utf8");
-    console.log("Sjccessfully changed version in version.rb");
+    console.log("Successfully changed version in version.rb");
   }
 
   // add all changes to git
