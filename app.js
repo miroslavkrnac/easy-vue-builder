@@ -8,14 +8,6 @@ let bundlePath = "app/assets/javascripts/easy_vue/bundle.js";
 const versionPath = "lib/easy_vue/version.rb";
 const prompts = require("prompts");
 
-const finishAndExit = (branchName, commitName, versionType) => {
-  const updatedVersion = versionType ? "\nSuccessfully updated version" : "";
-  console.log(
-    `${updatedVersion}\nSuccessfully updated bundle.js\nCreated commit: ${commitName}\nPushed to branch: ${branchName} `
-  );
-  process.exit(0);
-};
-
 const getCurrentVersion = () => {
   const isVersion = fs.existsSync(versionPath);
   if (!isVersion) return null;
@@ -76,7 +68,8 @@ const processResponses = async (answers, computedVersions) => {
   console.log("Successfully built bundle.js");
   const bundle = fs.existsSync(bundlePath);
   if (!bundle) {
-    throw new Error("Bundle not found!!");
+    console.log("Bundle not found!!");
+    process.exit(0);
   }
   // append text to bundle.js
   prependFile.sync(bundlePath, bundleTextToAppend);
@@ -88,15 +81,16 @@ const processResponses = async (answers, computedVersions) => {
     const increasedVersion = getIncreasedVersion(computedVersions, versionType);
     const newVersionFile = versionFile.replace(versionRegxp, increasedVersion);
     fs.writeFileSync(versionPath, newVersionFile, "utf8");
+    console.log("Sjccessfully changed version in version.rb");
   }
 
   // add all changes to git
   await git().add("*");
-  // ask for commit message
-  console.log("committed with message", commitMessage);
   await git().commit(commitMessage);
+  console.log("Committed with message: ", commitMessage);
   await git().push("origin", branchName);
-  finishAndExit(branchName, commitMessage, versionType);
+  console.log("Pushed to branch: ", branchName);
+  console.log("Finished!");
 };
 
 const computeVersions = currVersion => {
@@ -130,9 +124,9 @@ const init = async () => {
       name: "versionType",
       message: `Pick a version you want to increase. Current version is: ${currVersion.versionString}`,
       choices: [
-        { title: `Major (version will be: ${increasedMajor})`, value: "major" },
-        { title: `Minor (version will be: ${increasedMinor})`, value: "minor" },
         { title: `Patch (version will be: ${increasedPatch})`, value: "patch" },
+        { title: `Minor (version will be: ${increasedMinor})`, value: "minor" },
+        { title: `Major (version will be: ${increasedMajor})`, value: "major" },
         { title: `None of them`, value: null }
       ]
     },
