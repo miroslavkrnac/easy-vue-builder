@@ -96,8 +96,8 @@ const processResponses = async (answers, computedVersions) => {
 
 const computeVersions = currVersion => {
   const { major, minor, patch } = currVersion;
-  const increasedMajor = `${+major + 1}.${minor}.${patch}`;
-  const increasedMinor = `${major}.${+minor + 1}.${patch}`;
+  const increasedMajor = `${+major + 1}.0.0`;
+  const increasedMinor = `${major}.${+minor + 1}.0`;
   const increasedPatch = `${major}.${minor}.${+patch + 1}`;
   return {
     increasedMajor,
