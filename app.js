@@ -89,7 +89,7 @@ const processResponses = async (answers, computedVersions) => {
   await git().add("*");
   await git().commit(commitMessage);
   console.log("Committed with message: ", commitMessage);
-  await git().push("origin", branchName);
+  await git().push("origin", branchName, "--set-upstream");
   console.log("Pushed to branch: ", branchName);
   console.log("Finished!");
 };
